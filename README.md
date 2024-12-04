@@ -60,3 +60,79 @@ Implementation Details:
     Backend Framework: Use Django, Flask (Python), or Node.js.
     Frontend Framework: Use React or Vue.js to design a simple user interface.
     Integration Tools: Use REST API to connect the querying, generation, and summarization modules.
+
+Data Querying
+具體做法：
+1.設置數據來源：
+    對接 API：
+        Google Scholar：使用 SerpAPI，實現學術內容的檢索。
+        ArXiv：直接調用其開放的 API，檢索特定主題的學術論文。
+        專利資料庫：調用 Lens.org 或 WIPO API，查詢技術專利。
+    網絡爬蟲（備選）：如無 API，可通過 Python 的 BeautifulSoup 或 Scrapy 撰寫自動化數據爬取程式。
+2.查詢處理：
+    用戶輸入清理：
+        使用 NLP 工具（如 spaCy 或 NLTK）解析輸入的關鍵詞並生成查詢語句。
+    語意分析：
+        部署 BERT 模型，確保用戶的輸入能轉化為有效的查詢參數。
+    過濾與排序：
+        使用 Elasticsearch 或 SQL 數據庫進行快速查詢。
+        加入相關性排序算法，例如基於 TF-IDF 或 BM25 的方法。
+3.數據格式化：
+    將結果轉換為 JSON 格式，方便後續模組處理。
+
+Data Querying
+Implementation Details:
+1.Set Data Sources:
+    API Integration:
+        Google Scholar: Use SerpAPI to retrieve academic content.
+        ArXiv: Directly use its open API to query academic papers on specific topics.
+        Patent Databases: Utilize APIs from Lens.org or WIPO to search for patents.
+    Web Scraping (Optional): If APIs are unavailable, use Python libraries like BeautifulSoup or Scrapy for automated data crawling.
+2.Query Processing:
+    Input Cleaning:
+        Use NLP tools like spaCy or NLTK to parse keywords and generate query statements.
+    Semantic Analysis:
+        Deploy a BERT model to ensure user inputs are translated into effective query parameters.
+    Filtering and Ranking:
+        Use Elasticsearch or SQL databases for fast query processing.
+        Implement ranking algorithms like TF-IDF or BM25 for relevance scoring.
+3.Data Formatting:
+    Convert results into JSON format for seamless processing by subsequent modules.
+
+Summariser
+具體做法：
+1.摘要模型選擇：
+    零基礎實現：
+        使用 Hugging Face 提供的 transformers 模組，部署訓練好的 BERT 或 T5 模型。
+    工具調用：
+        GPT 模型（OpenAI API）：直接利用其強大的摘要生成能力。
+        提供參數：控制摘要長度和語言風格（專業、簡潔、學術性）。
+2.摘要生成邏輯：
+    從數據查詢模組的結果中提取關鍵段落。
+    使用 NLP 技術分析關鍵詞和句子關係，濃縮關鍵訊息。
+3.摘要優化：
+    設定輸出層級：
+        簡要版：生成3-5條核心想法。
+        詳細版：生成含背景與可能研究方向的完整摘要。
+    允許用戶進一步調整摘要風格或重點。
+4.整合測試：
+    測試用例：輸入不同領域的關鍵字（例如「氣候變遷+能源效率」），檢查摘要的準確性和實用性。
+
+Summariser
+Implementation Details:
+1.Choose a Summarization Model:
+    Custom Implementation:
+        Use pre-trained models from Hugging Face’s transformers library, such as BERT or T5.
+    API Integration:
+        Use GPT models (e.g., OpenAI API) for powerful summarization capabilities.
+        Provide parameters to control the summary length and style (e.g., professional, concise, academic).
+2.Summarization Logic:
+    Combine all summaries from the queried data.
+    Use NLP techniques to analyze keywords and sentence relationships, condensing key information.
+3.Optimize Summarization:
+    Define output levels:
+        Brief Version: Generate 3-5 core ideas.
+        Detailed Version: Generate summaries with background information and potential research directions.
+    Allow users to further adjust the summary style or focus.
+4.Integration Testing:
+    Test cases: Input keywords from various fields (e.g., "climate change + energy efficiency") and check the accuracy and usability of the generated summaries.

@@ -4,7 +4,15 @@
 Generate research ideas using LLMs.
 使用法學碩士產生研究想法。
 
+## Setup
 
+You should install the requirements with conda
+```sh
+conda install --yes --file requirements.txt
+```
+
+
+## Examples
 API Usage Example
 Input:
 curl -X POST -H "Content-Type: application/json" -d '{"keywords": "AI in medical imaging"}' http://127.0.0.1:5000/idea_generator
@@ -14,6 +22,8 @@ Output:
     "ideas": "Develop a deep learning model to enhance cardiovascular disease imaging accuracy. Explore GANs for rare disease image synthesis."
 }
 
+
+## Overview
 系統架構運作流程
 System Architecture Workflow
 

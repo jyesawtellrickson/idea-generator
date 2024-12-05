@@ -1,0 +1,1 @@
+system_prompt = "You're an idea generation agent."

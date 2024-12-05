@@ -1,3 +1,7 @@
 ollama
 langgraph
 transformers
+requests
+bs4
+lxml
+pytest

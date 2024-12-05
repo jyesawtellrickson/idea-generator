@@ -154,5 +154,7 @@ There are lots of ways to set LLMs up.
 
 # How to start LLMs?
 1. In Windows, open your terminal and key in:
+   ```sh
    ollama run [LLM name]
-   More information in https://ollama.com/library.
+   ```
+   LLMs information on https://ollama.com/library.

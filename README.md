@@ -150,7 +150,11 @@ Implementation Details:
 # LLM setup
 There are lots of ways to set LLMs up.
 1. Using Ollama on different operating system(e.g. Windows, MacOS, Linux), more details in https://github.com/ollama/ollama.
-2. Using VLLM on Linux only, more details in https://github.com/vllm-project/vllm.
+2. Using VLLM by one command in conda environment.
+   ```sh
+   (env) pip install vllm
+   ```
+   More details in https://github.com/vllm-project/vllm.
 
 # How to start LLMs after installation?
 1. In Windows, open your terminal and key in:

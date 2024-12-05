@@ -154,6 +154,8 @@ There are lots of ways to set LLMs up.
    ```sh
    (env) pip install vllm
    ```
+   Requirements: Linux OS, Python3.9-3.12(perfer 3.12) 
+                 GPU: compute capability 7.0 or higher (e.g., V100, T4, RTX20xx, A100, L4, H100, etc.)
    More details in https://github.com/vllm-project/vllm.
 
 # How to start LLMs after installation?

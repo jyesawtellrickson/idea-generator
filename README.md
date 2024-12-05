@@ -146,3 +146,13 @@ Implementation Details:
     Allow users to further adjust the summary style or focus.
 4.Integration Testing:
     Test cases: Input keywords from various fields (e.g., "climate change + energy efficiency") and check the accuracy and usability of the generated summaries.
+
+# LLM setup
+There are lots of ways to set LLMs up.
+1. Using Ollama on different operating system(e.g. Windows, MacOS, Linux), more details in https://github.com/ollama/ollama.
+2. Using VLLM on Linux only, more details in https://github.com/vllm-project/vllm.
+
+# How to start LLMs?
+1. In Windows, open your terminal and key in:
+   ollama run [LLM name]
+   More information in https://ollama.com/library.

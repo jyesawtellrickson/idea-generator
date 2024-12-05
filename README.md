@@ -152,9 +152,11 @@ There are lots of ways to set LLMs up.
 1. Using Ollama on different operating system(e.g. Windows, MacOS, Linux), more details in https://github.com/ollama/ollama.
 2. Using VLLM on Linux only, more details in https://github.com/vllm-project/vllm.
 
-# How to start LLMs?
+# How to start LLMs after installation?
 1. In Windows, open your terminal and key in:
    ```sh
    ollama run [LLM name]
    ```
    LLMs information on https://ollama.com/library.
+2. The command line will enter dialog box after running, as picture showing.
+   ![image](https://github.com/user-attachments/assets/41126d11-5d85-4da3-84c4-613d11bf69fa)

@@ -1,6 +1,4 @@
 import argparse
-# from src.pipelines.idea_generation import InteractiveIdeaGenerationPipeline
-# from src.pipelines import idea_generation
 from src.pipelines.idea_generation import build_langgraph, run_langgraph
 
 def main():

@@ -1,5 +1,7 @@
 ollama
 langgraph
+langchain
+langgraph-ollama
 transformers
 requests
 bs4

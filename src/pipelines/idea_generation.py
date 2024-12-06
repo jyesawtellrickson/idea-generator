@@ -4,7 +4,6 @@ from typing_extensions import TypedDict
 from typing import Literal
 import json
 
-from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.graph import END, START
@@ -16,6 +15,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.utils.api_helpers import query_arxiv
+from src.agents.generator import gen_idea_generator_agent
+from src.agents.evaluator import gen_evaluate_idea_agent
 
 def build_langgraph(args):
     """
@@ -23,6 +24,7 @@ def build_langgraph(args):
     """
     class State(TypedDict):
         messages: Annotated[list, add_messages]
+        ideas: list[str]
 
     graph_builder = StateGraph(State)
     memory = MemorySaver()
@@ -44,24 +46,22 @@ def build_langgraph(args):
     tools = [get_now, get_arxiv_papers]
     tool_node = ToolNode(tools=tools)
 
-    llm = ChatOllama(model=args.model)
-    llm_with_tools = llm.bind_tools(tools)
-
-
-    def chatbot(state: State):
-        return {"messages": [llm_with_tools.invoke(state["messages"])]}
+    generator_agent = gen_idea_generator_agent(args, tools)
+    evaluate_agent = gen_evaluate_idea_agent(args, tools)
 
     # Add all the parts to the graph
-    graph_builder.add_node("chatbot", chatbot)
+    graph_builder.add_node("generator_agent", generator_agent)
+    graph_builder.add_node("evaluate_agent", evaluate_agent)
     graph_builder.add_node("tools", tool_node)
 
-    graph_builder.add_edge("tools", "chatbot")
-    graph_builder.add_edge(START, "chatbot")
+    graph_builder.add_edge("generator_agent", "evaluate_agent")
+    graph_builder.add_edge("tools", "generator_agent")
+    graph_builder.add_edge(START, "generator_agent")
 
     # The `tools_condition` function returns "tools" if the chatbot asks to use a tool, and "END" if
     # it is fine directly responding. This conditional routing defines the main agent loop.
     graph_builder.add_conditional_edges(
-        "chatbot",
+        "generator_agent",
         tools_condition,
     )
     # Compile the graph and save image
@@ -83,6 +83,8 @@ def run_langgraph(args, graph):
         for event in graph.stream({"messages": [("user", user_input)]}, config):
             for value in event.values():
                 print("Assistant:", value["messages"][-1].content)
+                if value.get("ideas"):
+                    print("Ideas:", value["ideas"])
 
 
     while True:

@@ -11,6 +11,12 @@ You should install the requirements with conda
 conda install --yes --file requirements.txt
 ```
 
+You can run the app by using:
+```sh
+python main.py
+```
+
+This will begin the conversation with the LLM.
 
 ## Examples
 API Usage Example

@@ -34,8 +34,8 @@ def fetch_related_papers(query, api_config):
 
 
 # Example of using ArXiv API
-def query_arxiv(keywords):
-    url = f"http://export.arxiv.org/api/query?search_query=all:{keywords}&start=0&max_results=5"
+def query_arxiv(keywords, num_results):
+    url = f"http://export.arxiv.org/api/query?search_query=all:{keywords}&start=0&max_results={num_results}"
     response = requests.get(url)
     if response.status_code != 200:
         return []
@@ -52,7 +52,18 @@ def query_arxiv(keywords):
     
     return results
 
-
+def query_semantic_scholar(keywords):
+    pass
+    """config = {
+        "paper_api": {
+            "endpoint": "https://api.semanticscholar.org/v1/papers",
+            "api_key": "YOUR_API_KEY_HERE"
+        },
+        "llm": {
+            "model": "gpt-4",
+            "temperature": 0.7
+        }
+    }"""
 
 def init_openai():
     # Load environment variables from .env file

@@ -1,5 +1,3 @@
-
-
 from src.utils.api_helpers import query_arxiv
 
 def test_arxiv():

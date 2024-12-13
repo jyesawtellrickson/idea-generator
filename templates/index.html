@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Generation Machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        #chat-container {
+            width: 450px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        #header {
+            padding: 20px;
+            background: #007BFF;
+            color: white;
+            text-align: center;
+        }
+        #header img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        #header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        #header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        #messages {
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="header">
+            <img src="https://cdn-icons-png.flaticon.com/512/2463/2463510.png" alt="Idea Icon">
+            <h1>Idea Generation Machine</h1>
+            <p>Generate interesting new research ideas using the latest research and generative AI technology</p>
+        </div>
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type your message here...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function appendMessage(sender, text) {
+            const message = document.createElement('div');
+            message.textContent = `${sender}: ${text}`;
+            messagesDiv.appendChild(message);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            appendMessage('You', message);
+            userInput.value = '';
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    appendMessage('Reid', data.response);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        };
+        
+        sendBtn.addEventListener('click', sendMessage);
+
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        // add initial message to the chat window
+        
+        appendMessage('Reid', "Nice to meet you! I'm Reid the (Re)search (id)ea generator chatbot!");
+        appendMessage('Reid', "Please tell me about the area of research you're interested in to get started.");
+        
+    </script>
+</body>
+</html>

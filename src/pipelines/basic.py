@@ -6,17 +6,46 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
 
 
-from src.utils.api_helpers import query_arxiv
+from src.utils.api_helpers import (
+    get_arxiv_papers,
+    get_ieee_papers,
+    get_pubmed_papers,
+    get_springer_papers,
+)
 
 
 def build_graph(args):
     @tool
-    def get_arxiv_papers(keyword: str, num_results: int = 10) -> list[dict]:
+    def arxiv_tool(keyword: str, num_results: int = 100) -> list[dict]:
         """
         Fetches the latest research papers from ArXiv.
         Covers many topics including computer science, physics, math, etc.
         """
-        return query_arxiv(keyword, num_results)
+        return get_arxiv_papers(keyword, num_results)
+
+    @tool
+    def springer_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from Springer Nature.
+        Spring Nature specialises in science, technology, and medicine.
+        """
+        return get_springer_papers(keyword, num_results)
+
+    @tool
+    def ieee_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from IEEE Xplore.
+        IEEE Xplore specialises in engineering and technology.
+        """
+        return get_ieee_papers(keyword, num_results)
+
+    @tool
+    def pubmed_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from PubMed.
+        Pubmed specialises in medicine and biology.
+        """
+        return get_pubmed_papers(keyword, num_results)
 
     @tool
     def review_ideas(ideas: str) -> str:
@@ -38,7 +67,11 @@ def build_graph(args):
         # return f"Reviewing the ideas: {ideas}"
         return message.content
 
-    tools = [get_arxiv_papers, review_ideas]
+    # API tools
+    tools = [arxiv_tool, ieee_tool, pubmed_tool, springer_tool]
+    # Reviewer
+    tools += [review_ideas]
+
     model = ChatOllama(model=args.model)
 
     system_prompt = (

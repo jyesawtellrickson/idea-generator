@@ -14,7 +14,7 @@ from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeSt
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from src.utils.api_helpers import query_arxiv
+from src.utils.api_helpers import get_arxiv_papers as query_arxiv
 from src.agents.generator import gen_idea_generator_agent
 from src.agents.evaluator import gen_evaluate_idea_agent
 from src.agents.control import gen_control_agent

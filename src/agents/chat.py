@@ -9,6 +9,8 @@ from langgraph.graph import END, START
 
 from src.utils.utils import format_ideas
 
+import pprint
+
 
 def gen_chat_agent(args, tools):
     llm = ChatOllama(model=args.model)
@@ -30,18 +32,20 @@ def gen_chat_agent(args, tools):
                 "other agents to do the generation and evaluation of ideas."
                 "The ideas so far are: {ideas}",
             ),
-            ("human", "{input}"),
+            ("placeholder", "{conversation}"),
         ]
     )
 
     chain = prompt | llm
 
     def chatbot(state):
+        # print("\n\nChat input")
+        # pprint.pprint(state)
         try:
             response = chain.invoke(
                 {
-                    "input": state["messages"][-1].content,
-                    "ideas": format_ideas(state["ideas"]),
+                    "conversation": state["messages"],
+                    "ideas": format_ideas(list(set(state["ideas"]))),
                 }
             )
             update = {"messages": state["messages"] + [response], "ideas": state["ideas"]}

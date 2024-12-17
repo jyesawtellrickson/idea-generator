@@ -9,6 +9,11 @@ from langgraph.graph import END, START
 
 from typing import Literal
 from typing_extensions import TypedDict
+from typing import Optional
+
+from langgraph.graph import MessagesState
+
+import pprint
 
 
 def format_ideas(ideas):
@@ -20,23 +25,25 @@ def gen_control_agent(args, tools):
 
     members = ["generator_agent", "evaluate_agent", "chat_agent"]
     members = ["generator_agent", "chat_agent"]
-    options = members + ["FINISH"]
-
-    prompt = ()
+    options = members  # + ["FINISH"]
 
     prompt_full = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-                "You are the controller for a research idea generator that "
-                f"consists of the members: {members}. Given the previous input "
-                "from the user below, respond with the worker to act next. Each worker "
-                "will perform their task and respond with their results and "
-                "status. When finished, respond with FINISH."
-                "IMPORTANT: respond only with the name of the next agent to act."
-                "e.g. 'chat_agent', nothing else.",
+                "You are the controller for a research idea generator that"
+                f" consists of the members: {members}. Given the previous input"
+                " from the user and agents, respond with the worker to act "
+                " next. Each worker will perform their task."
+                " You should always use chat agent to respond to the user."
+                " If there is enough information to start generating ideas,"
+                " then route to generator_agent. If there are already ideas"
+                " then route to the chat_agent."
+                " Don't continually route to the generator agent."
+                " If you're unsure, route to chat_agent and it can get more"
+                " information from the user.",
             ),
-            ("human", "{input}"),
+            ("placeholder", "{conversation}"),
         ]
     )
 
@@ -44,49 +51,30 @@ def gen_control_agent(args, tools):
         """Worker to route to next. If no workers needed, route to FINISH."""
 
         next: Literal[*options]
+        ideas: Optional[list[str]]
 
-    """def supervisor_node(state):
-        messages = [
-            {"role": "system", "content": prompt},
-        ] + state["messages"]
+    def supervisor_node(state: MessagesState):  # -> Command[Literal[*options]]:
+        messages = prompt_full.invoke({"conversation": state["messages"][-3:]})
+        # print("Control input")
+        # pprint.pprint(messages)
 
         response = llm.with_structured_output(Router).invoke(messages)
-        goto = response["next"]
+
+        # print("Control Response", response)
+        if response is None:
+            print("Routing failed")
+            goto = "chat_agent"  # END  # "chat_agent"
+        else:
+            # print(response)
+            # print(response.get("ideas"))
+
+            state["ideas"] = response.get("ideas", [])
+            goto = response["next"]
 
         if goto == "FINISH":
             goto = END
 
-        return Command(goto=goto)"""
-
-    def supervisor_node_manual(state):
-        """messages = [
-            {"role": "system", "content": prompt},
-        ] + state["messages"]
-        chat_prompt_template = ChatPromptTemplate.from_messages(
-            [
-                ("system", prompt),
-                ("human", "{input}"),
-            ]
-        )"""
-        chain = prompt_full | llm
-        response = chain.invoke({"input": state["messages"][-1].content, "ideas": None})
-        # print("RESPNSOE", response)
-        # update = {"messages": state["messages"] + [response], "ideas": state["ideas"]}
-
-        next_agent = response.content
-        print("\n\nROUTING TO \n\n", next_agent)
-        if "generator_agent" in next_agent:
-            goto = "generator_agent"
-        elif "evaluate_agent" in next_agent:
-            goto = "evaluate_agent"
-        elif "chat_agent" in next_agent:
-            goto = "chat_agent"
-        else:
-            goto = "chat_agent"
-        # goto = get_next_node(response, END)
-
-        # if goto == "FINISH":
-        #    goto = END
+        print(f"\n\nRouting to {goto}")
         return Command(update=state, goto=goto)
 
-    return supervisor_node_manual
+    return supervisor_node

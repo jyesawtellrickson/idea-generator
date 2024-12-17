@@ -21,6 +21,7 @@ from src.agents.control import gen_control_agent
 from src.agents.chat import gen_chat_agent
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+import pprint
 
 import operator
 from typing import Annotated
@@ -67,21 +68,24 @@ def build_langgraph(args):
     graph_builder.add_node("control_agent", control_agent)
     graph_builder.add_node("tools", tool_node)
 
+    # graph_builder.add_edge("control_agent", "generator_agent")
+    # graph_builder.add_edge("generator_agent", "control_agent")
+    # graph_builder.add_edge("control_agent", "chat_agent")
     # graph_builder.add_edge("generator_agent", "evaluate_agent")
     # graph_builder.add_edge("evaluate_agent", "evaluate_agent")
-    graph_builder.add_edge("tools", "generator_agent")
+    # graph_builder.add_edge("tools", "generator_agent")
     graph_builder.add_edge(START, "control_agent")
     # graph_builder.add_edge("generator_agent", END)
     # graph_builder.add_edge("evaluate_agent", END)
-    graph_builder.add_edge("control_agent", END)
+    # graph_builder.add_edge("control_agent", END)
     graph_builder.add_edge("chat_agent", END)
 
     # The `tools_condition` function returns "tools" if the chatbot asks to use a tool, and "END" if
     # it is fine directly responding. This conditional routing defines the main agent loop.
-    graph_builder.add_conditional_edges(
+    """graph_builder.add_conditional_edges(
         "generator_agent",
         tools_condition,
-    )
+    )"""
     # Compile the graph and save image
     graph = graph_builder.compile(checkpointer=memory)
     image = graph.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API)
@@ -99,16 +103,12 @@ def run_langgraph(args, graph):
 
     def stream_graph_updates(state):
         config = {"configurable": {"thread_id": "1"}, "recursion_limit": 10}
-        for event in graph.stream(state, config):
-            for value in event.values():
-                state["messages"] = value["messages"]
-                state["ideas"] = value.get("ideas", [])
-                # print("\n\n################### Assistant Responded ###################\n\n")
-                # print("Assistant:", value["messages"][-1].content)
-                if value.get("ideas"):
-                    1
-                    # print("\n\n################### Ideas ###################\n\n")
-                    # print("Ideas:", value["ideas"])
+        for state in graph.stream(state, config, stream_mode="values"):
+            message = state["messages"][-1]
+            if isinstance(message, tuple):
+                print(message)
+            else:
+                message.pretty_print()
         return state
 
     ideas = []
@@ -121,10 +121,10 @@ def run_langgraph(args, graph):
             break
 
         state = stream_graph_updates(state)
-        ideas = state["ideas"][:5]
+        ideas = state.get("ideas", [])[:5]
 
-        print("\n\n################### Assistant Responded ###################\n\n")
-        print(state["messages"][-1].content)
+        # print("\n\n################### Assistant Responded ###################\n\n")
+        # print(state["messages"][-1].content)
 
         print("current ideas:\n\n")
-        print(ideas)
+        print(list(set(ideas)))

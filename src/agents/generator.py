@@ -6,6 +6,25 @@ from langgraph.types import Command
 
 from src.utils.utils import get_next_node, format_ideas
 from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import HumanMessage
+
+from typing import Optional
+from pydantic import BaseModel, Field
+
+from src.utils.api_helpers import build_api_tools
+
+
+tools = build_api_tools()
+
+
+class IdeasList(BaseModel):
+    """List of research ideas."""
+
+    ideas: list[str] = Field(description="A list of research ideas")
+    # user_response: str = Field(description="Text response to share ideas with user")
+    goto: Optional[str] = Field(
+        description="The next agent to call ('research', 'feedback'), or __end__ if the user's query has been resolved. Must be one of the specified values."
+    )
 
 
 def gen_idea_generator_agent(args, tools):
@@ -42,28 +61,33 @@ def gen_idea_generator_agent(args, tools):
             "focus on that idea and how you could provide more detail."
         )
 
-    agent = create_react_agent(llm, tools=tools, state_modifier=make_system_prompt())
+    tools = build_api_tools()
+
+    # llm = llm.with_structured_output(IdeasList)
+
+    agent = create_react_agent(llm, tools=tools)  # , state_modifier=make_system_prompt())
 
     def chatbot(state):
-        print("\n\nGENERATOR INPUT")
-        print(state)
+        # print("\n\nGENERATOR INPUT")
+        # print(state)
         try:
             state = agent.invoke(state)
-            print("\n\nGENERATER STATE", state)
-            ideas = extract_numbered_lines(state["messages"][-1].content)[:5]
+            # print("\n\nGENERATER STATE", state)
+            # update = state
+            update = {
+                "messages": [
+                    HumanMessage(content=state["messages"][-1].content, name="generator_agent")
+                ],
+            }
         except Exception as e:
             ideas = []
             update = {"messages": state["messages"] + [f"Error: {e}"], "ideas": ideas}
             print("\n\nERROR", e)
 
-        # update = {"messages": state["messages"] + [response], "ideas": ideas}
-        update = {"messages": state["messages"], "ideas": ideas}
-        print(update)
-
         return Command(
             update=update,
             # goto=get_next_node(update["messages"][-1], "evaluate_agent"),
-            goto="chat_agent",
+            goto="control_agent",  # "chat_agent",
         )
 
     return chatbot

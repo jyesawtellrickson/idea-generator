@@ -71,6 +71,14 @@
         #send-btn:hover {
             background: #0056b3;
         }
+        .message {
+            margin-bottom: 10px;
+        }
+        @media (min-width: 768px) {
+            .message {
+                font-size: 14px; /* Decrease font size */
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,7 +102,9 @@
 
         function appendMessage(sender, text) {
             const message = document.createElement('div');
-            message.innerHTML = `<strong>${sender}</strong>: ${text}`;
+            const formattedText = text.replace(/\n/g, '<br>');
+            message.classList.add('message'); // Add the message class
+            message.innerHTML = `<strong>${sender}</strong>: ${formattedText}`;
             messagesDiv.appendChild(message);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }

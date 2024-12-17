@@ -11,19 +11,39 @@ You should install the requirements with conda
 conda install --yes --file requirements.txt
 ```
 
-
-
-You can run the app by using:
+Might need to install ollama on linux:
 ```sh
-python main.py
+curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-Make sure to get ollama running before, e.g. on Windows:
+Make sure to get ollama running before:
 ```sh
 ollama serve
 ```
 
+You can run the code by using:
+```sh
+python main.py
+```
+
+Or run the app in the browser:
+```sh
+python app.py --model qwen2.5:14b
+```
+
+You can then serve that on the web using ngrok
+```sh
+ngrok http http://127.0.0.1:5000
+```
+
+If you'd like to generate a QR code, you can use: qr.io.
+
+
+Link：http://120.126.23.245:32264/auth
+
 This will begin the conversation with the LLM.
+
+
 
 ## Examples
 API Usage Example

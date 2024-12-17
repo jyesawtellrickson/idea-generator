@@ -1,10 +1,12 @@
 ollama
 langgraph
 langchain
-langgraph-ollama
+langchain-community
+langchain-ollama
 transformers
 requests
 bs4
 lxml
 pytest
 flask
+Werkzeug==2.2.2

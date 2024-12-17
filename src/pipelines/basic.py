@@ -16,7 +16,7 @@ from src.utils.api_helpers import (
 
 def build_graph(args):
     @tool
-    def arxiv_tool(keyword: str, num_results: int = 100) -> list[dict]:
+    def arxiv_tool(keyword: str, num_results: int = 5) -> list[dict]:
         """
         Fetches the latest research papers from ArXiv.
         Covers many topics including computer science, physics, math, etc.
@@ -60,7 +60,7 @@ def build_graph(args):
             " You can use the tools available to aid in your review."
         )
         model = ChatOllama(model=args.model)
-        graph = create_react_agent(model, [get_arxiv_papers], state_modifier=system_prompt)
+        graph = create_react_agent(model, tools, state_modifier=system_prompt)
         inputs = {"messages": [("user", ideas)]}
         for s in graph.stream(inputs, stream_mode="values"):
             message = s["messages"][-1]
@@ -68,7 +68,8 @@ def build_graph(args):
         return message.content
 
     # API tools
-    tools = [arxiv_tool, ieee_tool, pubmed_tool, springer_tool]
+    tools = [arxiv_tool, pubmed_tool] #, springer_tool] #  no access yet: ieee_tool,
+    # tools = [arxiv_tool]
     # Reviewer
     tools += [review_ideas]
 

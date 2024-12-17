@@ -2,9 +2,11 @@
 from flask import Flask, request, jsonify, render_template
 from src.pipelines.basic import print_stream, build_graph
 import argparse
+# from flask_ngrok import run_with_ngrok
 
 # Initialize Flask app
 app = Flask(__name__)
+# run_with_ngrok(app)
 
 parser = argparse.ArgumentParser(description="Generate Research Ideas")
 parser.add_argument("--model", type=str, default="mistral", choices=["mistral", "qwen2.5:14b"])
@@ -50,4 +52,4 @@ def chat():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 # import os
 from dotenv import load_dotenv
 import os
+from langchain_core.tools import tool
 
 # from ollama import chat
 # from ollama import ChatResponse
@@ -165,3 +166,47 @@ def get_springer_papers(keyword: str, num_results: int = 5) -> list[dict]:
     if response.status_code == 200:
         return response.json().get("records", [])
     return []
+
+
+def build_api_tools():
+    """
+    Build a list of API tools for fetching research papers.
+    """
+
+    @tool
+    def arxiv_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from ArXiv.
+        Important for generating research ideas.
+        Covers many topics including computer science, physics, math, etc.
+        """
+        return get_arxiv_papers(keyword, num_results)
+
+    @tool
+    def springer_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from Springer Nature.
+        Important for generating research ideas.
+        Spring Nature specialises in science, technology, and medicine.
+        """
+        return get_springer_papers(keyword, num_results)
+
+    @tool
+    def ieee_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from IEEE Xplore.
+        Important for generating research ideas.
+        IEEE Xplore specialises in engineering and technology.
+        """
+        return get_ieee_papers(keyword, num_results)
+
+    @tool
+    def pubmed_tool(keyword: str, num_results: int = 5) -> list[dict]:
+        """
+        Fetches the latest research papers from PubMed.
+        Important for generating research ideas.
+        Pubmed specialises in medicine and biology.
+        """
+        return get_pubmed_papers(keyword, num_results)
+
+    return [arxiv_tool]  # , get_ieee_papers, get_springer_papers, get_pubmed_papers]

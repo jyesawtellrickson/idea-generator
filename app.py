@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 parser = argparse.ArgumentParser(description="Generate Research Ideas")
 parser.add_argument("--model", type=str, default="mistral", choices=["mistral", "qwen2.5:14b"])
+parser.add_argument("--pipeline", type=str, default="basic", choices=["basic", "idea_generation"])
 args = parser.parse_args()
 graph = build_graph(args)
 init = True
@@ -28,9 +29,16 @@ def chatbot_response(user_input):
         init = False
     else:
         inputs = {"messages": [("user", user_input)]}
-    message = print_stream(graph, inputs, {"configurable": {"thread_id": "thread-1"}})
+
+    if args.pipeline == "basic":
+        message = print_stream(graph, inputs, {"configurable": {"thread_id": "thread-1"}})
+        ideas = []
+    elif args.pipeline == "idea_generation":
+        state = print_stream(graph, inputs, {"configurable": {"thread_id": "1"}})
+        message = state["messages"][-1]
+        ideas = state["ideas"][:5]
     # Replace this with your idea generator logic
-    return message.content
+    return message.content, ideas
 
 
 # Define route for the main interface
@@ -45,8 +53,8 @@ def chat():
     user_message = request.json.get("message")
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
-    response = chatbot_response(user_message)
-    return jsonify({"response": response})
+    response, ideas = chatbot_response(user_message)
+    return jsonify({"response": response})  # , "ideas": ideas})
 
 
 if __name__ == "__main__":

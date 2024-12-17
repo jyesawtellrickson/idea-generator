@@ -94,7 +94,7 @@
 
         function appendMessage(sender, text) {
             const message = document.createElement('div');
-            message.textContent = `${sender}: ${text}`;
+            message.innerHTML = `<strong>${sender}</strong>: ${text}`;
             messagesDiv.appendChild(message);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
@@ -115,7 +115,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.response) {
-                    appendMessage('Reid', data.response);
+                    appendMessage('Geni', data.response);
                 }
             })
             .catch(error => console.error('Error:', error));

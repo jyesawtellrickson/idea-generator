@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idea Generation Machine</title>
+    <title>GENerate Ideas</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,14 +71,6 @@
         #send-btn:hover {
             background: #0056b3;
         }
-        .message {
-            margin-bottom: 10px;
-        }
-        @media (min-width: 768px) {
-            .message {
-                font-size: 14px; /* Decrease font size */
-            }
-        }
     </style>
 </head>
 <body>
@@ -86,7 +78,7 @@
         <div id="header">
             <!--<img src="https://cdn-icons-png.flaticon.com/512/2463/2463510.png" alt="Idea Icon">-->
             <img src="{{ url_for('static', filename='robot.png') }}" alt="Idea Icon">
-            <h1>Idea Generation Machine</h1>
+            <h1>GENI chatbot</h1>
             <p>Generate interesting new research ideas using the latest research and generative AI technology</p>
         </div>
         <div id="messages"></div>
@@ -102,9 +94,7 @@
 
         function appendMessage(sender, text) {
             const message = document.createElement('div');
-            const formattedText = text.replace(/\n/g, '<br>');
-            message.classList.add('message'); // Add the message class
-            message.innerHTML = `<strong>${sender}</strong>: ${formattedText}`;
+            message.textContent = `${sender}: ${text}`;
             messagesDiv.appendChild(message);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
@@ -125,10 +115,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.response) {
-                    appendMessage('Geni', data.response);
-                }
-                if (data.papers) {
-                    appendMessage("Papers", data.papers.join('<br>'));
+                    appendMessage('GENI', data.response);
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -143,8 +130,8 @@
         });
         // add initial message to the chat window
         
-        appendMessage('Reid', "Nice to meet you! I'm Reid the (Re)search (id)ea generator chatbot!");
-        appendMessage('Reid', "Please tell me about the area of research you're interested in to get started.");
+        appendMessage('GENI', "Nice to meet you! I'm GENI and I can help you to GENerate Ideas!");
+        appendMessage('GENI', "Please tell me about the area of research you're interested in to get started.");
         
     </script>
 </body>

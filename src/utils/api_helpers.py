@@ -168,6 +168,33 @@ def get_springer_papers(keyword: str, num_results: int = 5) -> list[dict]:
     return []
 
 
+def get_response_cgu(messages, model="llama3:latest"):
+    """
+    Calls the CGU API to get a response for the given messages.
+    models = ["taide:latest", "llama3:latest"]
+    """
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f'Bearer {os.getenv("CGU_API_KEY")}',
+    }
+
+    json_data = {
+        "model": model,
+        "stream": "false",
+        "messages": messages,
+    }
+
+    response = requests.post(
+        "http://120.126.23.245:32264/ollama/api/chat", headers=headers, json=json_data
+    )
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print("Error calling CGU API")
+        return None
+
+
 def build_api_tools():
     """
     Build a list of API tools for fetching research papers.

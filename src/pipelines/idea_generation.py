@@ -16,7 +16,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 
 from src.utils.api_helpers import get_arxiv_papers as query_arxiv
 from src.agents.generator import gen_idea_generator_agent
-from src.agents.evaluator import gen_evaluate_idea_agent
+from src.agents.evaluator import gen_evaluator_agent
 from src.agents.control import gen_control_agent
 from src.agents.chat import gen_chat_agent
 
@@ -46,22 +46,22 @@ def build_langgraph(args):
     # tool_node = ToolNode(tools=tools)
 
     generator_agent = gen_idea_generator_agent(args, tools)
-    evaluate_agent = gen_evaluate_idea_agent(args, tools)
+    evaluator_agent = gen_evaluator_agent(args, tools)
     control_agent = gen_control_agent(args, tools)
     chat_agent = gen_chat_agent(args, tools)
 
     # Add all the parts to the graph
     graph_builder.add_node("chat_agent", chat_agent)
     graph_builder.add_node("generator_agent", generator_agent)
-    graph_builder.add_node("evaluate_agent", evaluate_agent)
+    graph_builder.add_node("evaluator_agent", evaluator_agent)
     graph_builder.add_node("control_agent", control_agent)
     # graph_builder.add_node("tools", tool_node)
 
     # graph_builder.add_edge("control_agent", "generator_agent")
-    # graph_builder.add_edge("generator_agent", "control_agent")
     # graph_builder.add_edge("control_agent", "chat_agent")
-    # graph_builder.add_edge("generator_agent", "evaluate_agent")
-    # graph_builder.add_edge("evaluate_agent", "evaluate_agent")
+    # graph_builder.add_edge("control_agent", "evaluator_agent")
+    # graph_builder.add_edge("generator_agent", "control_agent")
+    # graph_builder.add_edge("evaluator_agent", "control_agent")
     # graph_builder.add_edge("tools", "generator_agent")
     graph_builder.add_edge(START, "control_agent")
     # graph_builder.add_edge("generator_agent", END)
@@ -87,22 +87,27 @@ def build_langgraph(args):
 
 def stream_graph_updates(graph, state, config):
     tool_results = []
-    for state in graph.stream(state, config, stream_mode="values"):
-        message = state["messages"][-1]
-        if isinstance(message, ToolMessage):
-            content = message.content
-            if message.name == "arxiv_tool":
-                try:
-                    content = json.loads(content)
-                    content = [c.get("title") for c in content]
-                except:
-                    content = content
-            tool_results.append([message.name, content])
-        if isinstance(message, tuple):
-            print(message)
-        else:
-            message.pretty_print()
-    return state, tool_results
+    # Handle depth recursion error
+    try:
+        for state in graph.stream(state, config, stream_mode="values"):
+            message = state["messages"][-1]
+            if isinstance(message, ToolMessage):
+                content = message.content
+                if message.name == "arxiv_tool":
+                    try:
+                        content = json.loads(content)
+                        content = [c.get("title") for c in content]
+                    except:
+                        content = content
+                tool_results.append([message.name, content])
+            if isinstance(message, tuple):
+                print(message)
+            else:
+                message.pretty_print()
+
+        return state, tool_results
+    except:
+        return state, []
 
 
 def run_langgraph(args, graph):
@@ -122,7 +127,9 @@ def run_langgraph(args, graph):
         config = {"configurable": {"thread_id": "1"}, "recursion_limit": 5}
         state, _ = stream_graph_updates(graph, state, config)
         ideas = state.get("ideas", [])[:5]
-
+        # print("\n\n######################################\n\n")
+        # print("STATE:\n\n")
+        # print(state)
         # print("\n\n################### Assistant Responded ###################\n\n")
         # print(state["messages"][-1].content)
 

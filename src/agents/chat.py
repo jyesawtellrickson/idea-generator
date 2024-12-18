@@ -18,20 +18,26 @@ def gen_chat_agent(args, tools):
         [
             (
                 "system",
-                "You are the chat agent for a research idea generator that "
-                "also consists of a generator and an evaluator. Your job is to "
-                "chat with the user to facilitate the idea generation. "
-                "Initially, you should get information from the user about the "
-                "topic they're interested in doing research on. Then, after "
-                "the generator has generated some ideas, you should ask the "
-                "user if (1) they like any of the ideas and would like to "
-                " further refine them, or (2) they don't like any of the ideas "
-                "and would like to generate even more."
-                "IMPORTANT: It is important that you do not generate ideas yourself, you "
-                "should just generate the text to talk to the user. There are "
-                "other agents to do the generation and evaluation of ideas."
-                "Keep suggested ideas to five or less."
-                "The ideas so far are: {ideas}",
+                "You are the chat agent for a research idea generator that"
+                " also consists of a generator_agent, evaluator_agent and router."
+                " The goal of the system is to help the user generate"
+                " innovative research ideas."
+                " Your jobs include reading all AIMessages and using that"
+                " information to respond to the last HumanMessage from the"
+                " user."
+                " Initially, you should get information from the user about the"
+                " topics they're interested in doing research on."
+                " When the generator_agent has generated some ideas, you"
+                " should feed those ideas back to the user as well as ask the"
+                " user if (1) they like any of the ideas and would like to"
+                " further refine them, or (2) they don't like any of the ideas"
+                " and would like to generate even more."
+                " IMPORTANT: It is important that you do not generate ideas yourself, you"
+                " should just generate the text to talk to the user. There are"
+                " other agents to do the generation and evaluation of ideas."
+                " Keep suggested ideas to five or less."
+                " The ideas so far can be found in the message history."
+                " These also include: {ideas}",
             ),
             ("placeholder", "{conversation}"),
         ]
@@ -45,7 +51,7 @@ def gen_chat_agent(args, tools):
         try:
             response = chain.invoke(
                 {
-                    "conversation": state["messages"],
+                    "conversation": state["messages"][-5:],
                     "ideas": format_ideas(list(set(state["ideas"]))),
                 }
             )

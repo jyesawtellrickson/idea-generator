@@ -23,8 +23,8 @@ def format_ideas(ideas):
 def gen_control_agent(args, tools):
     llm = ChatOllama(model=args.model)
 
-    members = ["generator_agent", "evaluate_agent", "chat_agent"]
-    members = ["generator_agent", "chat_agent"]
+    members = ["generator_agent", "evaluator_agent", "chat_agent"]
+    # members = ["generator_agent", "chat_agent"]
     options = members  # + ["FINISH"]
 
     prompt_full = ChatPromptTemplate.from_messages(
@@ -38,27 +38,33 @@ def gen_control_agent(args, tools):
                 " You should always use chat agent to respond to the user."
                 " If there is enough information to start generating ideas,"
                 " then route to generator_agent. If there are already ideas"
-                " then route to the chat_agent."
+                " you might want to evaluate with evaluator_agent."
+                " If you want to return to the user, use the chat_agent."
                 " Don't continually route to the generator agent."
                 " If you're unsure, route to chat_agent and it can get more"
-                " information from the user.",
+                " information from the user."
+                " If extracting ideas, don't extract just a number, it should"
+                " the text of the ideas.",
             ),
             ("placeholder", "{conversation}"),
         ]
     )
 
     class Router(TypedDict):
-        """Worker to route to next. If no workers needed, route to FINISH."""
+        """Worker to route to next and extract list of ideas from conversation."""
 
         next: Literal[*options]
         ideas: Optional[list[str]]
 
     def supervisor_node(state: MessagesState):  # -> Command[Literal[*options]]:
-        messages = prompt_full.invoke({"conversation": state["messages"][-3:]})
+        """
+        Supervisor agent for controlling the flow of the idea generation.
+        """
+        messages = prompt_full.invoke({"conversation": state["messages"][-10:]})
         # print("Control input")
         # pprint.pprint(messages)
 
-        num_retries = 5
+        num_retries = 1
         i = 0
         response = None
         while response is None and i < num_retries:
@@ -67,7 +73,7 @@ def gen_control_agent(args, tools):
 
         # print("Control Response", response)
         if response is None:
-            print("Routing failed")
+            print("--x------Routing failed")
             goto = "chat_agent"  # END  # "chat_agent"
         else:
             # print(response)
@@ -80,6 +86,9 @@ def gen_control_agent(args, tools):
             goto = END
 
         print(f"\n\nRouting to {goto}")
-        return Command(update=state, goto=goto)
+        try:
+            return Command(update=state, goto=goto)
+        except:
+            return Command(goto="chat_agent")
 
     return supervisor_node

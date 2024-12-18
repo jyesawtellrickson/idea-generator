@@ -146,4 +146,4 @@ def run_basic(args):
 
         if len(tool_results) > 0:
             print("Ran the tools!")
-            print(tool_results)
+            # print(tool_results)

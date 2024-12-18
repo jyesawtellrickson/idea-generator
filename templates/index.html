@@ -79,6 +79,21 @@
                 font-size: 14px; /* Decrease font size */
             }
         }
+        /* Loader styles */
+        #loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #007BFF;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -91,14 +106,16 @@
         </div>
         <div id="messages"></div>
         <div id="input-container">
-            <input type="text" id="user-input" placeholder="Type your message here...">
+            <input type="text" id="user-input" placeholder="Let's get researching...">
             <button id="send-btn">Send</button>
+            <div id="loader"></div> <!-- Loader element -->
         </div>
     </div>
     <script>
         const messagesDiv = document.getElementById('messages');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
+        const loader = document.getElementById('loader');
 
         function appendMessage(sender, text) {
             const message = document.createElement('div');
@@ -114,6 +131,8 @@
             if (!message) return;
             appendMessage('You', message);
             userInput.value = '';
+            
+            loader.style.display = 'inline-block';
 
             fetch('/chat', {
                 method: 'POST',
@@ -124,6 +143,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                loader.style.display = 'none';
                 if (data.response) {
                     appendMessage('Geni', data.response);
                 }

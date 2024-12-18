@@ -6,7 +6,7 @@ from langgraph.types import Command
 
 from src.utils.utils import get_next_node, format_ideas
 from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -61,8 +61,6 @@ def gen_idea_generator_agent(args, tools):
             "focus on that idea and how you could provide more detail."
         )
 
-    tools = build_api_tools()
-
     # llm = llm.with_structured_output(IdeasList)
 
     agent = create_react_agent(llm, tools=tools)  # , state_modifier=make_system_prompt())
@@ -76,7 +74,7 @@ def gen_idea_generator_agent(args, tools):
             # update = state
             update = {
                 "messages": [
-                    HumanMessage(content=state["messages"][-1].content, name="generator_agent")
+                    AIMessage(content=state["messages"][-1].content, name="generator_agent")
                 ],
             }
         except Exception as e:

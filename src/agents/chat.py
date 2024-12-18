@@ -30,6 +30,7 @@ def gen_chat_agent(args, tools):
                 "IMPORTANT: It is important that you do not generate ideas yourself, you "
                 "should just generate the text to talk to the user. There are "
                 "other agents to do the generation and evaluation of ideas."
+                "Keep suggested ideas to five or less."
                 "The ideas so far are: {ideas}",
             ),
             ("placeholder", "{conversation}"),

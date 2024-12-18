@@ -236,4 +236,4 @@ def build_api_tools():
         """
         return get_pubmed_papers(keyword, num_results)
 
-    return [arxiv_tool]  # , get_ieee_papers, get_springer_papers, get_pubmed_papers]
+    return [arxiv_tool, springer_tool, ieee_tool, pubmed_tool]

@@ -1,6 +1,8 @@
 # Import required libraries
 from flask import Flask, request, jsonify, render_template, session
 from src.pipelines.basic import print_stream, build_graph
+from src.pipelines import idea_generation
+
 import argparse
 import uuid
 
@@ -15,7 +17,12 @@ parser = argparse.ArgumentParser(description="Generate Research Ideas")
 parser.add_argument("--model", type=str, default="mistral", choices=["mistral", "qwen2.5:14b"])
 parser.add_argument("--pipeline", type=str, default="basic", choices=["basic", "idea_generation"])
 args = parser.parse_args()
-graph = build_graph(args)
+
+if args.pipeline == "basic":
+    graph = build_graph(args)
+elif args.pipeline == "idea_generation":
+    graph = idea_generation.build_langgraph(args)
+
 init = True
 init_message = (
     "\n\n---------------------------------------\n"
@@ -47,7 +54,9 @@ def chatbot_response(user_input):
         )
         ideas = []
     elif args.pipeline == "idea_generation":
-        state = print_stream(graph, inputs, {"configurable": {"thread_id": "1"}})
+        state, tool_results = idea_generation.stream_graph_updates(
+            graph, inputs, {"configurable": {"thread_id": thread_id}}
+        )
         message = state["messages"][-1]
         ideas = state["ideas"][:5]
     # Replace this with your idea generator logic

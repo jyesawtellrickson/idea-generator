@@ -26,6 +26,8 @@ import pprint
 import operator
 from typing import Annotated
 
+from src.utils.api_helpers import build_api_tools
+
 
 def build_langgraph(args):
     """
@@ -39,22 +41,9 @@ def build_langgraph(args):
     graph_builder = StateGraph(State)
     memory = MemorySaver()
 
-    @tool
-    def get_now(format: str = "%Y-%m-%d %H:%M:%S") -> str:
-        """
-        Get the current time, use python string formatting to change the format.
-        """
-        return datetime.now().strftime(format)
-
-    @tool
-    def get_arxiv_papers(keyword: str, num_results: int) -> list[dict]:
-        """
-        Fetches research papers from ArXiv.
-        """
-        return query_arxiv(keyword, num_results)
-
-    tools = [get_now, get_arxiv_papers]
-    tool_node = ToolNode(tools=tools)
+    tools = build_api_tools()[:1]
+    # tools = [get_now, get_arxiv_papers]
+    # tool_node = ToolNode(tools=tools)
 
     generator_agent = gen_idea_generator_agent(args, tools)
     evaluate_agent = gen_evaluate_idea_agent(args, tools)
@@ -66,7 +55,7 @@ def build_langgraph(args):
     graph_builder.add_node("generator_agent", generator_agent)
     graph_builder.add_node("evaluate_agent", evaluate_agent)
     graph_builder.add_node("control_agent", control_agent)
-    graph_builder.add_node("tools", tool_node)
+    # graph_builder.add_node("tools", tool_node)
 
     # graph_builder.add_edge("control_agent", "generator_agent")
     # graph_builder.add_edge("generator_agent", "control_agent")
@@ -96,20 +85,30 @@ def build_langgraph(args):
     return graph
 
 
+def stream_graph_updates(graph, state, config):
+    tool_results = []
+    for state in graph.stream(state, config, stream_mode="values"):
+        message = state["messages"][-1]
+        if isinstance(message, ToolMessage):
+            content = message.content
+            if message.name == "arxiv_tool":
+                try:
+                    content = json.loads(content)
+                    content = [c.get("title") for c in content]
+                except:
+                    content = content
+            tool_results.append([message.name, content])
+        if isinstance(message, tuple):
+            print(message)
+        else:
+            message.pretty_print()
+    return state, tool_results
+
+
 def run_langgraph(args, graph):
     """
     Run the langgraph pipeline.
     """
-
-    def stream_graph_updates(state):
-        config = {"configurable": {"thread_id": "1"}, "recursion_limit": 10}
-        for state in graph.stream(state, config, stream_mode="values"):
-            message = state["messages"][-1]
-            if isinstance(message, tuple):
-                print(message)
-            else:
-                message.pretty_print()
-        return state
 
     ideas = []
     while True:
@@ -120,7 +119,8 @@ def run_langgraph(args, graph):
             print("Goodbye!")
             break
 
-        state = stream_graph_updates(state)
+        config = {"configurable": {"thread_id": "1"}, "recursion_limit": 5}
+        state, _ = stream_graph_updates(graph, state, config)
         ideas = state.get("ideas", [])[:5]
 
         # print("\n\n################### Assistant Responded ###################\n\n")

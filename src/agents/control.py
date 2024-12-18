@@ -58,7 +58,12 @@ def gen_control_agent(args, tools):
         # print("Control input")
         # pprint.pprint(messages)
 
-        response = llm.with_structured_output(Router).invoke(messages)
+        num_retries = 5
+        i = 0
+        response = None
+        while response is None and i < num_retries:
+            response = llm.with_structured_output(Router).invoke(messages)
+            i += 1
 
         # print("Control Response", response)
         if response is None:

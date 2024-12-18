@@ -4,6 +4,7 @@ from langgraph.prebuilt import create_react_agent
 
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
+from langchain_core.messages import ToolMessage
 
 
 from src.utils.api_helpers import (
@@ -12,6 +13,8 @@ from src.utils.api_helpers import (
     get_pubmed_papers,
     get_springer_papers,
 )
+
+import json
 
 
 def build_graph(args):
@@ -101,7 +104,7 @@ def build_graph(args):
     tools = [arxiv_tool, ieee_tool, pubmed_tool, springer_tool]
     tools = [arxiv_tool]
     # Reviewer
-    tools += [review_ideas, score_ideas]
+    # tools += [review_ideas, score_ideas]
 
     model = ChatOllama(model=args.model)
 
@@ -114,10 +117,9 @@ def build_graph(args):
         " research."
         " Do talk to and engage the user, don't just return lists."
         " IMPORTANT: always use your research APIs to get the latest research."
-        " IMPORTANT: if the user asks for reading, use the API."
     )
     # system_prompt = "You are a helpful chat agent."
-    # system_prompt="Use the arxiv papers tool"
+    # system_prompt = "Use the arxiv papers tool"
 
     graph = create_react_agent(
         model, tools, checkpointer=MemorySaver(), state_modifier=system_prompt, debug=True
@@ -126,14 +128,24 @@ def build_graph(args):
 
 
 def print_stream(graph, inputs, config):
+    tool_results = []
     for s in graph.stream(inputs, config, stream_mode="values"):
         message = s["messages"][-1]
+        if isinstance(message, ToolMessage):
+            content = message.content
+            if message.name == "arxiv_tool":
+                try:
+                    content = json.loads(content)
+                    content = [c.get("title") for c in content]
+                except:
+                    content = content
+            tool_results.append([message.name, content])
         if isinstance(message, tuple):
             print(message)
         else:
             message.pretty_print()
     # print([type(m) for m in s["messages"]])
-    return message
+    return message, tool_results
 
 
 def run_basic(args):
@@ -150,6 +162,7 @@ def run_basic(args):
         "\n\nYou can quit by typing 'quit' or 'exit'."
     )
     print(init_message)
+    tool_results = []
     init = True
     while True:
         user_input = input("\nUser: ")
@@ -162,5 +175,9 @@ def run_basic(args):
             print("Goodbye!")
             break
 
-        print_stream(graph, inputs, config)
+        tool_results = print_stream(graph, inputs, config)
         init = False
+
+        if len(tool_results) > 0:
+            print("Ran the tools!")
+            print(tool_results)

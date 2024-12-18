@@ -1,11 +1,14 @@
 # Import required libraries
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from src.pipelines.basic import print_stream, build_graph
 import argparse
+import uuid
+
 # from flask_ngrok import run_with_ngrok
 
 # Initialize Flask app
 app = Flask(__name__)
+app.secret_key = "jye"
 # run_with_ngrok(app)
 
 parser = argparse.ArgumentParser(description="Generate Research Ideas")
@@ -25,7 +28,13 @@ init_message = (
 
 # Define the chatbot logic
 def chatbot_response(user_input):
-    init = True
+    if "thread_id" not in session:
+        session["thread_id"] = str(uuid.uuid4())
+
+    thread_id = session["thread_id"]
+    init = False
+    papers = ""
+    tool_results = []
     if init:
         inputs = {"messages": [("ai", init_message), ("user", user_input)]}
         init = False
@@ -33,14 +42,22 @@ def chatbot_response(user_input):
         inputs = {"messages": [("user", user_input)]}
 
     if args.pipeline == "basic":
-        message = print_stream(graph, inputs, {"configurable": {"thread_id": "thread-1"}})
+        message, tool_results = print_stream(
+            graph, inputs, {"configurable": {"thread_id": thread_id}}
+        )
         ideas = []
     elif args.pipeline == "idea_generation":
         state = print_stream(graph, inputs, {"configurable": {"thread_id": "1"}})
         message = state["messages"][-1]
         ideas = state["ideas"][:5]
     # Replace this with your idea generator logic
-    return message.content, ideas
+    # Display papers queried to the user, from tool results
+    if len(tool_results) > 0:
+        for tool, content in tool_results:
+            if tool == "arxiv_tool":
+                papers = content
+
+    return message.content, papers
 
 
 # Define route for the main interface
@@ -55,8 +72,12 @@ def chat():
     user_message = request.json.get("message")
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
-    response, ideas = chatbot_response(user_message)
-    return jsonify({"response": response})  # , "ideas": ideas})
+    response, papers = chatbot_response(user_message)
+    data = {"response": response}
+    if len(papers) > 0:
+        data["papers"] = papers
+
+    return jsonify(data)  # , "ideas": ideas})
 
 
 if __name__ == "__main__":

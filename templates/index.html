@@ -127,6 +127,9 @@
                 if (data.response) {
                     appendMessage('Geni', data.response);
                 }
+                if (data.papers) {
+                    appendMessage("Papers", data.papers.join('<br>'));
+                }
             })
             .catch(error => console.error('Error:', error));
         };

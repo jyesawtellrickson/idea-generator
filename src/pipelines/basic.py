@@ -68,9 +68,9 @@ def build_graph(args):
 
     # API tools
     tools = build_api_tools()
-    tools = tools[:1]
+    # tools = tools[:1]
     # Reviewer
-    # tools += [review_ideas, score_ideas]
+    tools += [review_ideas, score_ideas]
 
     model = ChatOllama(model=args.model)
 
@@ -102,7 +102,7 @@ def print_stream(graph, inputs, config):
             if message.name == "arxiv_tool":
                 try:
                     content = json.loads(content)
-                    content = [c.get("title") for c in content]
+                    content = ['<a href="https://arxiv.org/search/?query=' + c.get("title").replace(" ", "+").replace("\n", "") + '&searchtype=all" target="_blank">'+ c.get("title").replace("\n", "")+'</a>' for c in content]
                 except:
                     content = content
             tool_results.append([message.name, content])

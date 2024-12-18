@@ -33,7 +33,13 @@ python app.py --model qwen2.5:14b
 
 You can then serve that on the web using ngrok
 ```sh
-ngrok http http://127.0.0.1:5000
+ngrok http http://127.0.0.1:5000 --url=moved-sawfish-adjusted.ngrok-free.app
+ngrok http  80
+```
+
+(install ngrok)
+```sh
+sudo tar -xvzf ngrok-v3-stable-linux-amd64.tgz -C /usr/local/bin
 ```
 
 If you'd like to generate a QR code, you can use: qr.io.
